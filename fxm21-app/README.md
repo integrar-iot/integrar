@@ -22,6 +22,10 @@ fxm21-app/
     services/
       device-registry.ts
       diagnostics.ts
+      health.ts
+      logger.ts
+      polling.ts
+      retry.ts
     index.ts
 ```
 
@@ -31,5 +35,13 @@ fxm21-app/
 2. Wire real protocol parsing into `services/diagnostics.ts` and populate `models/fxm21.ts`.
 3. Implement calibration command sequencing in `calibration/workflows.ts`.
 4. Add persistence, observability, and RBAC once the connector is stable.
+
+## Local Development
+
+```
+FXM21_USE_FAKE=true npm start
+```
+
+This will use the in-memory connector to simulate a 6-device FXM21 loop.
 
 > Note: This is a scaffold only; production dependencies and build tooling will be added after protocol validation.
