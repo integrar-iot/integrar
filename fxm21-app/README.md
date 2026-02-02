@@ -44,4 +44,10 @@ FXM21_USE_FAKE=true npm start
 
 This will use the in-memory connector to simulate a 6-device FXM21 loop.
 
+To run a single polling cycle (useful for validation without an endless loop):
+
+```
+FXM21_USE_FAKE=true FXM21_RUN_ONCE=true npm start
+```
+
 > Note: This is a scaffold only; production dependencies and build tooling will be added after protocol validation.

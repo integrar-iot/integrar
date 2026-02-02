@@ -4,6 +4,7 @@ export interface AppSettings {
   connectionTimeoutMs: number;
   pollIntervalMs: number;
   useFakeConnector: boolean;
+  runOnce: boolean;
 }
 
 export const defaultSettings: AppSettings = {
@@ -12,4 +13,5 @@ export const defaultSettings: AppSettings = {
   connectionTimeoutMs: 5000,
   pollIntervalMs: 5000,
   useFakeConnector: false,
+  runOnce: false,
 };

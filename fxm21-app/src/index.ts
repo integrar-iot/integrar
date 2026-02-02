@@ -11,6 +11,7 @@ async function main(): Promise<void> {
   const settings = {
     ...defaultSettings,
     useFakeConnector: process.env.FXM21_USE_FAKE === "true" || defaultSettings.useFakeConnector,
+    runOnce: process.env.FXM21_RUN_ONCE === "true" || defaultSettings.runOnce,
   };
 
   const connector = settings.useFakeConnector
@@ -29,11 +30,17 @@ async function main(): Promise<void> {
 
   await connector.connect();
 
-  await polling.start(async () => {
+  const pollAction = async (): Promise<void> => {
     await diagnostics.refreshDeviceRegistry();
     const statuses = await diagnostics.readAllStatuses();
     consoleLogger.info("FXM21 statuses", { count: statuses.length });
-  });
+  };
+
+  if (settings.runOnce) {
+    await pollAction();
+  } else {
+    await polling.start(pollAction);
+  }
 
   if (!settings.useFakeConnector) {
     consoleLogger.warn("Calibration is not executed automatically in production mode.");
