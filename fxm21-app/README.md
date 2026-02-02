@@ -50,4 +50,17 @@ To run a single polling cycle (useful for validation without an endless loop):
 FXM21_USE_FAKE=true FXM21_RUN_ONCE=true npm start
 ```
 
+## Production Configuration
+
+Set these environment variables before launching in production:
+
+- `FXM21_HRT710_HOST` (required unless using the fake connector)
+- `FXM21_HRT710_PORT` (default: 502)
+- `FXM21_TIMEOUT_MS` (default: 5000)
+- `FXM21_POLL_INTERVAL_MS` (default: 5000)
+- `FXM21_RUN_ONCE` (default: false)
+- `FXM21_USE_FAKE` (default: false)
+
+The application will refuse to start without `FXM21_HRT710_HOST` in production mode to avoid misconfiguration.
+
 > Note: This is a scaffold only; production dependencies and build tooling will be added after protocol validation.

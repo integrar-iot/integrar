@@ -1,5 +1,5 @@
 import { FakeHrt710Connector, Hrt710EthernetConnector } from "./connectors/hrt710";
-import { defaultSettings } from "./config/settings";
+import { loadSettings } from "./config/settings";
 import { CalibrationService } from "./calibration/workflows";
 import { InMemoryDeviceRegistry } from "./services/device-registry";
 import { DiagnosticsService } from "./services/diagnostics";
@@ -8,11 +8,7 @@ import { consoleLogger } from "./services/logger";
 import { HealthService } from "./services/health";
 
 async function main(): Promise<void> {
-  const settings = {
-    ...defaultSettings,
-    useFakeConnector: process.env.FXM21_USE_FAKE === "true" || defaultSettings.useFakeConnector,
-    runOnce: process.env.FXM21_RUN_ONCE === "true" || defaultSettings.runOnce,
-  };
+  const settings = loadSettings(process.env);
 
   const connector = settings.useFakeConnector
     ? new FakeHrt710Connector()
@@ -27,6 +23,15 @@ async function main(): Promise<void> {
   const calibration = new CalibrationService(connector);
   const health = new HealthService();
   const polling = new PollingService({ intervalMs: settings.pollIntervalMs }, consoleLogger, health);
+
+  const shutdown = async () => {
+    consoleLogger.info("Shutdown initiated");
+    polling.stop();
+    await connector.disconnect();
+  };
+
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
 
   await connector.connect();
 
