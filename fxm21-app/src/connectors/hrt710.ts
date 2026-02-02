@@ -1,4 +1,4 @@
-import type { Fxm21DeviceId, Fxm21Status } from "../models/fxm21";
+import type { Fxm21DeviceId, Fxm21Loop, Fxm21LoopId, Fxm21Status } from "../models/fxm21";
 import { defaultRetryPolicy, withRetry, type RetryPolicy } from "../services/retry";
 
 export interface Hrt710ConnectionOptions {
@@ -11,8 +11,9 @@ export interface Hrt710ConnectionOptions {
 export interface Hrt710Connector {
   connect(): Promise<void>;
   disconnect(): Promise<void>;
+  listFxm21Loops(): Promise<Fxm21Loop[]>;
   listFxm21DeviceIds(): Promise<Fxm21DeviceId[]>;
-  readFxm21Status(deviceId: Fxm21DeviceId): Promise<Fxm21Status>;
+  readFxm21Status(deviceId: Fxm21DeviceId, loopId: Fxm21LoopId): Promise<Fxm21Status>;
   runFxm21Calibration(deviceId: Fxm21DeviceId): Promise<void>;
 }
 
@@ -37,7 +38,11 @@ export class Hrt710EthernetConnector implements Hrt710Connector {
     throw new Error("Not implemented: FXM21 loop scan via HRT protocol");
   }
 
-  async readFxm21Status(_deviceId: Fxm21DeviceId): Promise<Fxm21Status> {
+  async listFxm21Loops(): Promise<Fxm21Loop[]> {
+    throw new Error("Not implemented: FXM21 loop scan via HRT protocol");
+  }
+
+  async readFxm21Status(_deviceId: Fxm21DeviceId, _loopId: Fxm21LoopId): Promise<Fxm21Status> {
     throw new Error("Not implemented: FXM21 status read via HRT 710");
   }
 
@@ -48,10 +53,18 @@ export class Hrt710EthernetConnector implements Hrt710Connector {
 
 export class FakeHrt710Connector implements Hrt710Connector {
   private connected = false;
-  private readonly deviceIds: Fxm21DeviceId[];
+  private readonly loops: Fxm21Loop[];
 
-  constructor(deviceCount = 6) {
-    this.deviceIds = Array.from({ length: deviceCount }, (_, index) => `FXM21-${index + 1}`);
+  constructor(loopCount = 6, devicesPerLoop = 6) {
+    this.loops = Array.from({ length: loopCount }, (_, loopIndex) => {
+      const loopId = `LOOP-${loopIndex + 1}`;
+      const deviceIds = Array.from(
+        { length: devicesPerLoop },
+        (_, deviceIndex) => `FXM21-${loopIndex + 1}-${deviceIndex + 1}`,
+      );
+
+      return { loopId, deviceIds };
+    });
   }
 
   async connect(): Promise<void> {
@@ -64,13 +77,19 @@ export class FakeHrt710Connector implements Hrt710Connector {
 
   async listFxm21DeviceIds(): Promise<Fxm21DeviceId[]> {
     this.ensureConnected();
-    return [...this.deviceIds];
+    return this.loops.flatMap((loop) => loop.deviceIds);
   }
 
-  async readFxm21Status(deviceId: Fxm21DeviceId): Promise<Fxm21Status> {
+  async listFxm21Loops(): Promise<Fxm21Loop[]> {
+    this.ensureConnected();
+    return this.loops.map((loop) => ({ ...loop }));
+  }
+
+  async readFxm21Status(deviceId: Fxm21DeviceId, loopId: Fxm21LoopId): Promise<Fxm21Status> {
     this.ensureConnected();
     return {
       deviceId,
+      loopId,
       timestamp: new Date().toISOString(),
       metrics: {
         flowRate: Math.round(Math.random() * 1000) / 10,

@@ -38,7 +38,8 @@ async function main(): Promise<void> {
   const pollAction = async (): Promise<void> => {
     await diagnostics.refreshDeviceRegistry();
     const statuses = await diagnostics.readAllStatuses();
-    consoleLogger.info("FXM21 statuses", { count: statuses.length });
+    const loops = registry.listLoops();
+    consoleLogger.info("FXM21 statuses", { count: statuses.length, loops: loops.length });
   };
 
   if (settings.runOnce) {
@@ -50,7 +51,7 @@ async function main(): Promise<void> {
   if (!settings.useFakeConnector) {
     consoleLogger.warn("Calibration is not executed automatically in production mode.");
   } else {
-    const firstId = registry.list()[0];
+    const firstId = registry.listDeviceIds()[0];
     if (firstId) {
       await calibration.calibrateSingle({
         deviceId: firstId,
